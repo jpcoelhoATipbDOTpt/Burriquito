@@ -10,6 +10,7 @@
 #include <SPI.h>
 #include "HX711.h"
 #include <avr/sleep.h>
+#include <ArduinoJson.h>
 
 //***********************************************************************
 // Cartão SD
@@ -45,12 +46,12 @@ DateTime now;
 //***********************************************************************
 // LED de status
 //-----------------------------------------------------------------------
-#define WAKE 8 
+#define WAKE 8
 #define ERRO 9
 //***********************************************************************
 
 //***********************************************************************
-// Pino de interrupção (acroda príncipe)
+// Pino de interrupção (acorda príncipe)
 //-----------------------------------------------------------------------
 #define SQW 2
 //***********************************************************************
@@ -59,41 +60,42 @@ volatile byte ShowTime = LOW;
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Inicializa RTC
 //-----------------------------------------------------------------------
-bool RTCInit(void){
+bool RTCInit(void) {
   Wire.begin();
-  RTC.begin();
+  // Initialize RTC
+  if (!RTC.begin()) {
+    //Serial.println("RTC not found!");
+    return (false);
+  }
   if (! RTC.isrunning()) {
-    Serial.println("RTC failed"); // DEBUG
-    // This line sets the RTC with an explicit date & time, for example to set
-    // January 21, 2014 at 3am you would call:
-    RTC.adjust(DateTime(2014, 1, 21, 3, 0, 0));
+    //Serial.println("RTC failed"); // DEBUG
     return(false);
   }
-  Serial.println("RTC sucessfull"); // DEBUG
-  return(true);
+  Serial.println(F("RTC sucessfull")); // DEBUG
+  return (true);
 }
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Rotina de atendimento à interrupção de SQW
 //-----------------------------------------------------------------------
-void Acorda_Principe(){
+void Acorda_Principe() {
   sleep_disable();    //Acorda principe
   detachInterrupt(0); //Inativa interrupções;
-  digitalWrite(WAKE,HIGH);      // Principe acorda....
+  digitalWrite(WAKE, HIGH);     // Principe acorda....
 }
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Deep sleep
 //-----------------------------------------------------------------------
-void Dorme_Principe(){
-    sleep_enable();                     // Habilita Sleep
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);// Estabelece full sleep
-    digitalWrite(WAKE,LOW);             // Principe vai dormir....
-    attachInterrupt(0, Acorda_Principe, FALLING);
-    sleep_cpu();                        // Principe a domir....
-  }
+void Dorme_Principe() {
+  sleep_enable();                     // Habilita Sleep
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);// Estabelece full sleep
+  digitalWrite(WAKE, LOW);            // Principe vai dormir....
+  attachInterrupt(0, Acorda_Principe, FALLING);
+  sleep_cpu();                        // Principe a domir....
+}
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -102,7 +104,7 @@ void Dorme_Principe(){
 void logData(void)
 {
   char dataString[9];
-  long Strain = (long)(scale.read_average(10)>>12);
+  long Strain = (long)(scale.read_average(10) >> 12);
   now = RTC.now();  // Amostra a hora/data
   snprintf(dataString, sizeof(dataString), "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
   // ************************************************************ Tenta abrir o ficheiro
@@ -146,67 +148,115 @@ void dateTime(uint16_t* date, uint16_t* time) {
 void erro(uint8_t valor) {
   unsigned long ton = 100;
   unsigned long toff = 2000;
-  int i,nbr;
+  int i, nbr;
   detachInterrupt(0); //Inativa interrupções
-  switch(valor){
-    case SDERROR:  nbr=1;
-                   break;
-    case RTCERROR: nbr=2;
-                   break;
-    case FILEOVER: nbr=3;
-                   break;
-    case FILEERROR:nbr=4;
-                   break;
+  switch (valor) {
+    case SDERROR:  nbr = 1;
+      break;
+    case RTCERROR: nbr = 2;
+      break;
+    case FILEOVER: nbr = 3;
+      break;
+    case FILEERROR: nbr = 4;
+      break;
+  }
+  while (1) {
+    for (i = 0; i < nbr; i++)
+    {
+      digitalWrite(ERRO, HIGH);
+      delay(ton);
+      digitalWrite(ERRO, LOW);
+      delay(ton);
     }
-    while(1){
-      for (i=0;i<nbr;i++)
-      {
-        digitalWrite(ERRO,HIGH);
-        delay(ton);
-        digitalWrite(ERRO,LOW);
-        delay(ton);
-      }
-      delay(toff);
-    }
+    delay(toff);
+  }
 }
 
 
-//***********************************************************************  
+//***********************************************************************
 void setup () {
   //....................................................................................
-  pinMode(WAKE,OUTPUT);                 // LED indica que o principe acordou
-  pinMode(ERRO,OUTPUT);                 // LED indica que o principe acordou
-  pinMode(SQW, INPUT_PULLUP);                    // Pino 2 para acordar o principe  
+  pinMode(WAKE, OUTPUT);                // LED indica que o principe acordou
+  pinMode(ERRO, OUTPUT);                // LED indica que o principe acordou
+  pinMode(SQW, INPUT_PULLUP);                    // Pino 2 para acordar o principe
   // ************************************************************ Inicializa porto série (para Debug apenas):
   Serial.begin(250000);
   // ************************************************************ Inicializa HX711
-  scale.begin(DT,SCK);
+  scale.begin(DT, SCK);
   // ************************************************************ Inicializa RTC
-  if(!RTCInit()){          // Inicializa RTC
+  if (!RTCInit()) {        // Inicializa RTC
     erro(RTCERROR);        // Acende LED de erro....
   }
-  RTC.writeSqwPinMode(SquareWave1HZ);
-  // ************************************************************ Nome Parcial do FileName
-  now = RTC.now();  // Amostra a hora/data
-  String DateTimeString= "";
-  DateTimeString = DateTimeString + String(now.year(),DEC) + "/" + String(now.month(),DEC) + "/" + String(now.day(),DEC);
-  DateTimeString = DateTimeString + "   " + String(now.hour(),DEC) + ":" + String(now.minute(),DEC) + ":" + String(now.second(),DEC);
-  Serial.println(DateTimeString); // Mostra no terminal  
+
   // ************************************************************ Inicializa cartão de memória
   if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
     erro(SDERROR); // Acende LED de erro...
   }
-  Serial.println("sucessfull");  // ... :)
-   // ************************************************************ Verifica o nome do ficheiro e se está já no cartão SD
+  Serial.println(F("SD sucessfull"));  // ... :)
+  // ************************************************************ Ajusta data e hora a partir do ficheiro setup.ini
+  // verifica se setup.ini existe
+  // Formato:
+  // {
+  // "Date": [2025,3, 28],
+  // "Time": [18,29]
+  // }
+  if (sd.exists("setup.ini")) {
+    //Serial.println("setup.ini encontrado. Lendo ficheiro...");
+    if (file.open("setup.ini", O_READ)) {
+      char jsonBuffer[64]; // Buffer for JSON content
+      int bytesRead = file.read(jsonBuffer, sizeof(jsonBuffer) - 1);
+      jsonBuffer[bytesRead] = '\0'; // Null-terminate
+      file.close();
+      // Parse JSON
+      StaticJsonDocument<64> doc;
+      DeserializationError error = deserializeJson(doc, jsonBuffer);
+      if (error) {
+        //Serial.println("Falha no ficheiro JSON");
+        erro(SDERROR); // Acende LED de erro...;
+      }
+      // Extrai info do ficheiro
+      int year = doc["Date"][0];
+      int month = doc["Date"][1];
+      int day = doc["Date"][2];
+      int hour = doc["Time"][0];
+      int minute = doc["Time"][1];
+
+      // Atualiza RTC
+      RTC.adjust(DateTime(year, month, day, hour, minute, 0));
+      //Serial.println("RTC updated successfully!");
+
+      // Altera o nome para setup.old
+      if (sd.rename("setup.ini", "setup.old")) {
+        //Serial.println("setup.ini alterado para setup.old.");
+      } else {
+        //Serial.println("Falha na operação setup.ini>setup.old.");
+      }
+
+    } else {
+      //Serial.println("Erro na abertura do ficheiro setup.ini");
+      erro(SDERROR); // Acende LED de erro...;
+    }
+  } else {
+    Serial.println(F("setup.ini não encontrado."));
+  }
+  
+  RTC.writeSqwPinMode(SquareWave1HZ);
+  // ************************************************************ Nome Parcial do FileName
+  now = RTC.now();  // Amostra a hora/data
+  String DateTimeString = "";
+  DateTimeString = DateTimeString + String(now.year(), DEC) + "/" + String(now.month(), DEC) + "/" + String(now.day(), DEC);
+  DateTimeString = DateTimeString + "   " + String(now.hour(), DEC) + ":" + String(now.minute(), DEC) + ":" + String(now.second(), DEC);
+  Serial.println(DateTimeString); // Mostra no terminal
+  // ************************************************************ Verifica o nome do ficheiro e se está já no cartão SD
   int n = 0;
-  snprintf(fileName, sizeof(fileName), "%02d%02d%02d%02d.txt", now.year()-2000, now.month(), now.day(),n);
-  while(sd.exists(fileName)) {
+  snprintf(fileName, sizeof(fileName), "%02d%02d%02d%02d.txt", now.year() - 2000, now.month(), now.day(), n);
+  while (sd.exists(fileName)) {
     n++;
-    if(n>99){
+    if (n > 99) {
       erro(FILEOVER);
     }
-    snprintf(fileName, sizeof(fileName), "%02d%02d%02d%02d.txt", now.year()-2000, now.month(), now.day(),n);
-    }
+    snprintf(fileName, sizeof(fileName), "%02d%02d%02d%02d.txt", now.year() - 2000, now.month(), now.day(), n);
+  }
   // No máximo 99 ficheiros num dia....  se passar deve ser removidos ficheiros do cartão
   Serial.println(fileName);
   // ************************************************************ Tenta abrir o ficheiro
