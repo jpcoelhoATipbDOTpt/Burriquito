@@ -1,0 +1,36 @@
+%&latex
+\documentclass{article}
+
+%+MakeIndex
+\usepackage{makeidx}
+\makeindex
+%-MakeIndex
+
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\begin{document}
+
+%+Title
+\title{\Huge\bf Sistema de Medição de Forças com Células de Carga e ESP32}
+\author{João Paulo Coelho}
+\date{\today}
+\maketitle
+%-Title
+
+%+Contents
+\tableofcontents
+%+Contents
+
+%+Make Parts
+%\part{First Part}
+%-Make Parts
+
+\chapter{}
+
+%+MakeIndex
+\printindex
+%-MakeIndex
+
+\end{document}
+
+

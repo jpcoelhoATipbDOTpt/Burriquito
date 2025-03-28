@@ -1,0 +1,145 @@
+%&latex
+\documentclass{book}
+
+%+MakeIndex
+\usepackage{makeidx}
+\makeindex
+%-MakeIndex
+
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\begin{document}
+
+%+Title
+\title{\Huge\bf Exercícios C para João}
+\author{Author of the Book}
+\date{\today}
+\maketitle
+%-Title
+
+%+Contents
+\tableofcontents
+%+Contents
+
+%+Make Parts
+%\part{First Part}
+%-Make Parts
+
+\chapter{}
+
+\begin{enumerate}
+\item
+Utilizando um ciclo \textsf{for}, apresente no ecrã os número de 0 a 10 separados por virgulas. Por exemplo:\\
+
+\textsf{0,1,2,3,4,5,6,7,8,9,10}
+\item
+Repita o exercício anterior mas agora representando os números de -10 a 10 também separados por vírgulas. Por exemplo:\\
+
+\textsf{-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10}
+
+\item
+Repita o exercício anterior mas agora só os pares entre -10 e 10. Por exemplo:\\
+
+\textsf{-10,-8,-6,-4,-2,,0,2,4,6,8,10}
+\item
+Repita o Exercício 1 utilizando um ciclo \textsf{While}.
+\item
+Repita o Exercício 2 utilizando um ciclo \textsf{While}.
+\item
+Repita o Exercício 3 utilizando um ciclo \textsf{While}. 
+
+\item 
+Faz um programa que faça a soma de dois números inteiros. Deve pedir os dois números ao utilizador e apresentar na tela o resultado da soma. Por exemplo:\\
+
+\textsf{Operando 1: 10\\
+Operando 2: 6\\
+Resultado da soma de 10 com 6 é 16}
+\item 
+Faz um programa que realize a seguinte sequência de operações:\\
+- O utilizador começa por indicar quantos números vai introduzir;\\
+- A seguir o programa pede esses números ao utilizador;\\
+- No final o programa calcula a média dos valores que ele introduziu.\\
+Por exemplo:\\
+
+\textsf{Qual a dimensão?: 4\\
+Introduza valor: 8\\
+Introduza valor: 4\\
+Introduza valor: 6\\
+Introduza valor: 2\\
+Média igual a 5}
+
+sugestão: utilizar ciclo \textsf{for}.
+\item
+Faz um programa que vá pedindo números inteiros positivos ao utilizador até que ele insira o número -1. Quando isso acontecer deve apresentar o resultado da soma. Por exemplo:\\
+
+\textsf{Insira um número: 10\\
+Insira um número: 7\\
+Insira um número: 3\\
+Insira um número: 8\\
+Insira um número: -1\\
+Resultado da soma igual a 28}
+
+sugestão: utilizar ciclo \textsf{while} e condição \textsf{if}.
+\item
+Altere o exercício anterior de forma a que, caso o numero introduzido pelo utilizador seja negativo, o programa deve repetir o pedido. Por exemplo:\\
+
+\textsf{Insira um número: 10\\
+Insira um número: 7\\
+Insira um número: -3\\
+Volte a inserir: -4\\
+Volte a inserir: 3\\
+Insira um número: 8\\
+Insira um número: -1\\
+Resultado da soma igual a 28}
+
+\item
+Seja x uma variável do tipo array com capacidade para 5 elementos inteiros. Faça um programa que preencha cada uma das cinco posições do array com números introduzidos pelo utilizador. No fim deve apresentar os valores introduzidos separados por vírgulas. Por exemplo:\\
+
+\textsf{Insira um número: 10\\
+Insira um número: 7\\
+Insira um número: -3\\
+Insira um número: 8\\
+Insira um número: -1\\
+10, 7, -3, 8, -1}
+
+\item
+Uma string é um array de caracteres. Seja x uma variável do tipo array com capacidade para 5 elementos do tipo char. Faça um programa que preencha cada uma das quatro primeiras posições do array com letras introduzidos pelo utilizador. A última posição do vetor deve ser introduzida pelo próprio programa, no fim do utilizador colocar as letras, com o caracter '\0'. O resultado final deve ser a palavra criada com as letras introduzidas. Por exemplo:\\
+
+\textsf{Insira uma letra: J\\
+Insira uma letra: O\\
+Insira uma letra: A\\
+Insira uma letra: O\\
+JOAO}
+
+\item
+Faz um programa que peça ao utilizador cinco números inteiros entre 0 e 10 e apresenta na tela o gráfico de barras. Por exemplo:\\
+
+\textsf{Introduza o primeiro número: 5\\
+Introduza o segundo número: 2\\
+Introduza o terceiro número: 1\\
+Introduza o quarto número: 7\\
+Introduza o quinto número:9\\
+}
+\begin{verbatim}
+                        * 
+                        * 
+                   *    * 
+                   *    *  
+    *              *    * 
+    *              *    *  
+    *              *    *  
+    *    *         *    *  
+    *    *    *    *    * 
+=============================
+    1    2    3    4    5
+\end{verbatim}
+\item
+Acrescenta no fim do programa anterior o código necessário para poder guardar num ficheiro o gráfico.
+\end{enumerate}
+%+MakeIndex
+\printindex
+%-MakeIndex
+
+\end{document}
+
+

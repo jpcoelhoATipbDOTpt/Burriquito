@@ -1,0 +1,349 @@
+%&latex
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+%% ---------------------------------------------------------------------------------------------------LISTAGEM
+\usepackage{color}
+\usepackage{listings}
+\usepackage{courier}
+\lstset{ basicstyle=\scriptsize\ttfamily, % Standardschrift
+         numbers=left,                    % Ort der Zeilennummern
+         numberstyle=\tiny,               % Stil der Zeilennummern
+         stepnumber=1,                    % Abstand zwischen den Zeilennummern
+         numbersep=5pt,                   % Abstand der Nummern zum Text
+         tabsize=2,                       % Groesse von Tabs
+         extendedchars=true,              %
+         breaklines=true,                 % Zeilen werden Umgebrochen
+         keywordstyle=\bfseries,         
+         stringstyle=\ttfamily,           % Farbe der String
+         showspaces=false,                % Leerzeichen anzeigen ?
+         showtabs=false,                  % Tabs anzeigen ?
+         xleftmargin=17pt,
+         framexleftmargin=17pt,
+         framexrightmargin=5pt,
+         framexbottommargin=4pt,
+         %backgroundcolor=\color{lightgray},
+         showstringspaces=false,          % Leerzeichen in Strings anzeigen?
+         frame=lines                      %hnone|leftline|topline|bottomline|lines|single|shadowboxi
+ }
+%% ---------------------------------------------------------------------------------------------------LISTAGEM
+
+\lstdefinelanguage{Arduino}
+{
+morekeywords={cli,CS12,TOIE1,TCCR1A,TCCR1B,TCNT1,TIMSK1,digitalRead,false,true,if,attachInterrupt,digitalPinToInterrupt,CHANGE,sei,define,delayMicroseconds,analogRead,analogReference,available,DEFAULT,int,read,setup,loop,pinMode,digitalWrite,delay,HIGH,LOW,void,OUTPUT,Serial,
+begin, println,print,for,byte,return},
+sensitive=true,
+morecomment=[l]{//,/*,*/},
+morestring=[b]",
+}
+
+\usepackage{hyperref}
+
+\begin{document}
+
+%+Title
+\title{Sistema de Medida de Forças com Células de Carga e ESP32}
+\author{João Paulo Coelho}
+\date{\today}
+\maketitle
+%-Title
+
+%+Abstract
+\begin{abstract}
+    Logbook para referência. 
+\end{abstract}
+%-Abstract
+
+%+Contents
+\tableofcontents
+%-Contents
+
+\section{Introdução}
+
+Algumas questões que é preciso responder:
+\begin{itemize}
+\item 
+Quantas céluas de carga são necessárias?
+\item
+Qual a frequencia de amostragem?
+\item
+Durante quanto tempo os ensaios são realizados?
+\item 
+Descrição do processo?
+\item
+
+\end{itemize}
+\section{Instalação do ESP32}
+\begin{enumerate}
+\item 
+Abrir a janela de preferências do Arduino IDE. Para isso, navegar através do menu ``Ficheiro'' até ao item ``Preferências''.
+
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.5\textwidth]{Figuras/Fig1.png}
+\label{fig:fig1}
+\end{figure}
+%--------------------------------------------------------------------------------
+\item
+Escrever no campo ``URL Adicionais do Gestor de Placas o seguinte endereço:
+\begin{verbatim}
+https://dl.espressif.com/dl/package_esp32_index.json
+\end{verbatim}
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=1\textwidth]{Figuras/Fig2.png}
+\label{fig:fig2}
+\end{figure}
+%--------------------------------------------------------------------------------
+\item
+Abrir o gestor de placas em ``Ferramentas'' e selecionar ``Gestor de Placas''.
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.7\textwidth]{Figuras/Fig3.png}
+\label{fig:fig3}
+\end{figure}
+%--------------------------------------------------------------------------------
+
+\item
+Procurar por ESP32 e instalar ``ESP32 by Espressif Systems''
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.7\textwidth]{Figuras/Fig4.png}
+\label{fig:fig4}
+\end{figure}
+%--------------------------------------------------------------------------------
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.7\textwidth]{Figuras/Fig5.png}
+\label{fig:fig5}
+\end{figure}
+%--------------------------------------------------------------------------------
+\end{enumerate}
+
+\subsection{Teste da Instalação}
+\begin{enumerate}
+\item 
+Ligar a placa de desenvolvimento ESP32 ao computador através de um cabo micro USB.
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.45\textwidth]{Figuras/Fig7.png}
+\label{fig:fig7}
+\end{figure}
+%--------------------------------------------------------------------------------
+\item
+No Arduino IDE selecionar a placa e o porto de comunicação.
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.7\textwidth]{Figuras/Fig6.png}
+\label{fig:fig6}
+\end{figure}
+%--------------------------------------------------------------------------------
+\item
+Carregar o programa apresentado na listagem \ref{list1} para a plataforma de desenvolvimento e comprovar o seu funcionamento.
+\lstinputlisting[float, language=Arduino,label=list1,caption=Exemplo de um programa elementar para testar a placa e a instalação do ESP32 no IDE do Arduino.]{Firmware/Teste1/Teste1.ino}
+
+Outro teste que pode ser executado é aquele que aparece nos exemplos como WiFiScan. A listagem do programa é:
+\lstinputlisting[float, language=Arduino,label=list1,caption=Exemplo de um programa elementar para testar a placa e a instalação do ESP32 no IDE do Arduino.]{Firmware/Teste2/Teste2.ino}
+e o resultado da sua execução, para este caso particular, é:
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.7\textwidth]{Figuras/Fig9.png}
+\label{fig:fig6}
+\end{figure}
+%--------------------------------------------------------------------------------
+
+\end{enumerate}
+
+\section{Célula de Carga}
+
+A célula de carga utilizada nestes ensaios é um transdutor com referência 3140 e uma capacidade de 500~kg tanto à tração como à compressão. Esta célula de carga foi adquirida no site \url{https://www.robotshop.com/eu/en/500kg-s-type-load-cell.html} por cerca de 60 euros. O aspeto dela, assim como as suas dimensões mecânicas, está representada na figura \ref{fig:fig11}.
+
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.45\textwidth]{Figuras/Fig11.png}
+\includegraphics[width=0.45\textwidth]{Figuras/Fig14.png}
+\label{fig:fig11}
+\end{figure}
+%--------------------------------------------------------------------------------
+
+\subsection{Características Metrológicas}
+
+As características metrológicas do sensor encontram-se sumariadas na tabela representada na Figura \ref{fig:fig10}.
+
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.65\textwidth]{Figuras/Fig10.png}
+\label{fig:fig10}
+\end{figure}
+%--------------------------------------------------------------------------------
+
+De acordo com as especificações apresentadas nessa tabela, observa-se que:
+\begin{description}
+\item[Overload:] O valor máximo se sobrecarga é de 120\% do valor de fim-de-escala (FdE) que neste caso é 500~kg. Por isso, esse valor é de 600~kg. O valor limite de sobrecarga é 150\% do valor de FdE ou seja 750~kg.
+
+\item[Sensibilidade:] A sensibilidade $S$ desta célula de carga é de 2.0044~mV/V. Isto significa que, a cada Volt aplicado à tensão de alimentação, a tensão de desiquilíbrio da célula quando excitada pela carga máxima é igual a 2.0044~mV. Ou seja, se $V_o$ for a tensão de desiquilíbrio da ponte de extensómetros da célula de carga, e se $V_{CC}$ for a tensão de polarização dessa ponte então,
+\begin{equation}
+V_o = \frac{F}{FdE} \times S\times V_{CC}
+\end{equation}
+
+Assim, se a ponte for alimentada com 3.3~V, o valor de $V_o$, em mV, é dado por:
+
+\begin{equation}
+V_o\approx 0.01323\times F
+\end{equation}
+
+Ou seja, uma sensibilidade de 0.01323~mV por cada kg. Para o sistema de medida ter uma resolução de 1~kg é necessário que o conversor A/D tenha uma resolução superior a:
+\begin{equation}
+\frac{3.3}{2^n}\le\frac{0.01323}{1000}
+\end{equation}
+
+de onde se tira que:
+\begin{equation}
+n \ge \left\lceil\log_2\left( \frac{3.3\times 1000}{0.01323}\right)\right\rceil
+\end{equation}
+ou seja $n\ge 18$. Um conversor A/D de 24 bits terá a capacidade de distinguir variações no peso de:
+
+\begin{equation}
+\frac{3.3}{2^{24}}\approx 1.967\times 10^{-7}
+\end{equation}
+ou seja, uma resolução em torno de 0.2~mV. Esta tensão corresposponde à tensão de desiquilíbrio provocada por um peso de aproximadamente 15~kg.
+
+Há que notar, entretanto, que o HX711 fornece um ganho programável entre 64 e 128. Considerando o ganho mais baixo, $V_o=0.8467\times F$ e logo o a resolução da balança será em torno das 250~g. Obviamente, para um ganho de 128 a resolução será perto de 125~g.
+
+\item[Precisão:] O valor da precisão é descrita como sendo $\pm$ 0.02\% do valor de FdE. Como o valor de FdE é 500~kg, então a precisão é $\pm$0.1~kg ou seja $\pm$100~g.
+
+\item[Repetibilidade:] A repetibilidade mede a capacidade do sistema fornecer informação consistente qunando excitado com o mesmo sinal. Neste caso, a repetibilidade é de 0.017\% do valor de fim-de-escala. Ou seja, cerca de 85 gramas. 
+
+\item[Creep:] Diz respeito ao aumento no valor da saída ao fim de 30 minutos de aplicação de uma tração/compressão constante.
+
+
+\end{description}
+
+\subsection{Conectividade Elétrica}
+
+A saída da célula de carga e disponibilizada em 5 fios de cores vermelho, verde, branco, preto e amarelo. As descrição de cada um desses fios está tabelada na Figura \ref{fig:fig12}. O condicionamento de sinal, nas folhas de dados da célula de carga, refere o dispositivo PhidgetBridge (\url{https://www.phidgets.com/?tier=3&catid=98&pcid=78&prodid=1027}). No entanto, neste protótipo iremos utilizar o HX711.
+
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.65\textwidth]{Figuras/Fig12.png}
+\includegraphics[width=0.2\textwidth]{Figuras/Fig13.png}
+\label{fig:fig12}
+\end{figure}
+%--------------------------------------------------------------------------------
+
+
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.85\textwidth]{Figuras/Fig15.png}
+\label{fig:fig15}
+\end{figure}
+%--------------------------------------------------------------------------------
+
+\section{Arduino Pro Mini}
+
+\subsection{Power Down Mode}
+
+Uno uses between 30-40 mA when awake and about 19 mA when asleep. The Pro Mini uses 25mA when awake and 0.57 mA when asleep
+
+\lstinputlisting[float, language=Arduino,label=list1,caption=Sleep well my sweet prince....]{Codigo/Sleep/Sleep.ino}
+
+
+\subsection{Alterar para funcionar com clock interno}
+
+Utilizar um arduino UNO como ISP:
+\begin{itemize}
+\item 
+Connect the Uno to the PC (using USB)
+\item
+Open the Arduino IDE (I'm using v1.6.11)
+\item
+Check the board: Tools Menu -> Board ->Arduino Uno
+\item
+Check the port: Tools Menu -> Serial Port -> [select the port for the Uno]
+\item
+Load the ISP sketch: File menu -> Examples -> ArduinoISP ->ArduinoISP
+\item
+Upload - once complete, the Uno is configured as ISP
+\item
+Remove connection from Uno (power off)
+\end{itemize}
+
+Connect the two devices for programming:
+
+\noindent Uno ------------------------Pro Mini\\
+5V (vcc) ------------------- VCC\\
+GND ------------------------GND\\
+Pin 10 ---------------------- RST\\
+Pin 11 ---------------------- Pin 11\\
+Pin12 ---------------------- Pin 12\\
+Pin 13 ------------------- -- Pin 13\\
+
+Third step is to burn the bootloader:-
+
+
+\begin{itemize}
+\item 
+Connect the Uno to the PC (Arduino IDE still open)
+\item
+Change the board: Tools Menu -> Board ->Arduino Pro or Pro Mini
+\item
+Check the speed and processor: Tools Menu -> Processor -> ATmega328 (5V, 16MHz)
+\item
+Choose the programmer> Tools Menu -> Programmer -> Arduino as ISP
+\item
+Burn the bootloader: Tools Menu -> Burn Bootloader
+\end{itemize}
+
+\subsubsection{Notas}
+
+Para criar um novo bootloader é necessário ter o ``make'' instaldo que, a partir da versão do Arduino 1.0.6 não vem instaldo. Por isso, essa versão do Arduino foi instalada e o bootloader criado. Os ficheiros no diretório Codigo/Bootloader são os ficheiros produzidos no processo de criação do booloader. O ficheiro ``boards.txt'' deve substituir o homónimo na pasta criada durante a instalação do Arduino. O ficheiro ``Makefile'' assim como o ``.hex'' e o ``.lst'' serão colocados na pasta ``optiboot''.
+
+De acordo com a informação fornecida pela Microchip, o ponto de operação definido pela frequência de clock e tensão de alimentação deve ser mantida dentro da região sobreada do gráfico da Figura.
+
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.85\textwidth]{Figuras/Fig16.png}
+\label{fig:fig15}
+\end{figure}
+%--------------------------------------------------------------------------------
+
+A frequência de 16 MHZ é demasiado elevada para uma utilização estável do microcontrolador. Como a placa que foi adquirida utiliza um cristal de 16 MHz, a única alternativa é recorrer ao oscilador interno. no entanto, por defeito não é possível definir o clock interno como fonte do sinal de sincronismo. Para isso, foi necessário criar um novo bootloader. Depois de se criar o Makefile e o boards.txt, bastou escrever, dentro da pasta optiboot, o comando:\\
+
+\texttt{omake pro3v328\_iClock}.\\
+
+Utilizando um arduino UNO como progamador ISP carregou-se o bootloader para o Arduino Pro Mini.
+%--------------------------------------------------------------------------------
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.85\textwidth]{Figuras/Fig20.png}
+\label{fig:fig15}
+\end{figure}
+%--------------------------------------------------------------------------------
+
+
+%+Bibliography
+\begin{thebibliography}{99}
+\bibitem{Label1} ...
+\bibitem{Label2} ...
+\end{thebibliography}
+%-Bibliography
+
+\end{document}
